@@ -1,0 +1,32 @@
+{
+    "id": "AF71D1D5",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1610039136530.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "expression": "mask",
+        "caption": "mask",
+        "totalObservations": 271,
+        "displayedObservations": 271,
+        "variables": 271,
+        "cacheKey": "CB633159",
+        "object": "mask",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=mask&cache_key=CB633159&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 2314885530818453536,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1610039136530,
+    "read_only": false,
+    "read_only_alternatives": []
+}
