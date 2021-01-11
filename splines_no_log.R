@@ -3,7 +3,7 @@ library("rstan")
 library(covidcast)
 
 start_day <- "2020-03-15"
-timezero_day <-  "2020-11-10"
+timezero_day <-  "2020-12-03"
 forecast_day <-  as.Date(timezero_day) + 28
 region <- "ca"
 
@@ -54,7 +54,7 @@ for (i in 1:(num_data+28)){
 }
 
 
-num_basis <- nrow(B_total)
+num_basis <- nrow(B_total_cases)
 B_cases <- B_total_cases[1:num_basis,1:length(X)]
 B_deaths <- B_total_deaths[1:num_basis,1:length(X)]
 
@@ -115,6 +115,9 @@ points(ca_deaths$value,cex=.2,col='red')
 
 
 plot(c(colMeans(fit_yhat$pred_death_total)),type='l',ylim=c(0,max(ca_deaths$value)))
+lines(c(apply(fit_yhat$pred_death_total,2,function(x){quantile(x,.975)})),type='l',ylim=c(0,max(ca_deaths$value)))
+lines(c(apply(fit_yhat$pred_death_total,2,function(x){quantile(x,.025)})),type='l',ylim=c(0,max(ca_deaths$value)))
+
 points(ca_deaths$value,cex=.2,col='red')
 points(seq(nrow(ca_deaths)+1,nrow(ca_deaths)+28),validation_death$value,col='blue',cex=.2)
 

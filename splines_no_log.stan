@@ -44,6 +44,7 @@ parameters {
 } 
  
 transformed parameters { 
+  real tmp;
   row_vector[num_basis_cases] a_cases; 
   vector[num_data] Y_hat_cases;
   
@@ -57,8 +58,10 @@ transformed parameters {
  
  
   a_cases[1] = a_cases_raw[1];
-  for (i in 2:num_basis_cases)
+  for (i in 2:num_basis_cases){
+    tmp = if_else(i < num_basis_cases-3,tau_cases,tau_cases/100);
     a_cases[i] = a_cases[i-1] + a_cases_raw[i]*tau_cases;
+  }
   Y_hat_cases = a0_cases*to_vector(X_cases) + to_vector(a_cases*B_cases);
 
  
@@ -75,16 +78,16 @@ transformed parameters {
  
 model { 
   a_cases_raw ~ normal(0, 10); 
-  tau_cases ~ cauchy(0, 100); 
-  sigma_cases ~ normal(0, 1); 
+  tau_cases ~ cauchy(0, 1); 
+  sigma_cases ~ normal(0, 10); 
   
   a_deaths_raw ~ normal(0, 1); 
-  tau_deaths ~ cauchy(0, 1); 
-  sigma_deaths ~ normal(0, .5); 
+  tau_deaths ~ cauchy(0, .1); 
+  sigma_deaths ~ normal(0, 1); 
   
-  cfr[1] ~ normal(logit(.005),.2);
+  cfr[1] ~ normal(logit(.005),.05);
   for (i in 2:num_data){
-    cfr[i] ~ normal(cfr[i-1],.2);
+    cfr[i] ~ normal(cfr[i-1],.05);
   }
 
    y_cases ~ normal(Y_hat_cases, sigma_cases); 
