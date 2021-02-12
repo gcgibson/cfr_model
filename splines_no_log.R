@@ -3,9 +3,9 @@ library("rstan")
 library(covidcast)
 
 start_day <- "2020-03-15"
-timezero_day <-  "2020-12-03"
+timezero_day <-  "2020-05-02"
 forecast_day <-  as.Date(timezero_day) + 28
-region <- "ca"
+region <- "tx"
 
 ca_deaths <- covidcast_signal(data_source = "jhu-csse",
                               signal ="deaths_incidence_num",
@@ -39,19 +39,7 @@ B_total_cases <- t(ns(c(X,X_new), knots=seq(1,length(X)+length(X_new),by=20),int
 B_total_deaths <- t(ns(c(X,X_new), knots=seq(1,length(X)+length(X_new),by=20),intercept = TRUE)) # creating the B-splinesl
 
 num_data <- nrow(ca_cases)
-lambda_ = 21
-mask <- matrix(0,nrow=num_data,ncol=num_data)
-for (i in 1:num_data){
-  tmp=rev(dgeom(seq(0,num_data-1)[1:(i)],1/21))
-  mask[i,1:(i)]=tmp
-}
-
-
-mask_w_pred <-  matrix(0,nrow=num_data+28,ncol=num_data+28)
-for (i in 1:(num_data+28)){
-  tmp=rev(dgeom(seq(0,(num_data+28)-1)[1:(i)],1/21))
-  mask_w_pred[i,1:(i)]=tmp
-}
+  
 
 
 num_basis <- nrow(B_total_cases)
@@ -69,11 +57,11 @@ library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 sm<-stan_model("splines_no_log.stan")
-fit<-sampling(sm,iter=100,chains=1,data=list(y_deaths=pmax(0,ca_deaths$value),
-                                             y_cases=pmax(0,ca_cases$value),
+fit<-sampling(sm,iter=1000,chains=1,data=list(y_deaths=log(pmax(0,ca_deaths$value)+1)[21:length(ca_deaths$value)],
+                                             y_cases=log(pmax(0,ca_cases$value)+1),
                                              n=nrow(ca_deaths),
+                                             offset=20,
                                              day_of_week = rep(1:7,length.out=nrow(ca_deaths)),
-                                             mask=mask,
                                              num_data=num_data,
                                              num_basis_cases=num_basis,
                                              num_basis_deaths=num_basis,
@@ -106,12 +94,12 @@ validation_cases <-  covidcast_signal(data_source = "jhu-csse",
 
 
 
-plot(c(colMeans(fit_yhat$Y_hat_cases),colMeans(fit_yhat$pred_cases)),type='l',ylim=c(0,max(ca_cases$value)))
-points(ca_cases$value,cex=.2,col='red')
+plot(c(colMeans(fit_yhat$Y_hat_cases),colMeans(fit_yhat$pred_cases)),type='l',ylim=c(0,max(log(ca_cases$value))))
+points(log(ca_cases$value),cex=.2,col='red')
 points(seq(nrow(ca_deaths)+1,nrow(ca_deaths)+28),validation_cases$value,col='blue',cex=.2)
 
-plot(c(colMeans(fit_yhat$Y_hat_deaths)),type='l',ylim=c(0,max(ca_deaths$value)))
-points(ca_deaths$value,cex=.2,col='red')
+plot(c(colMeans(fit_yhat$Y_hat_deaths)),type='l',ylim=c(0,max(log(ca_deaths$value+1)+2)))
+points(log(pmax(0,ca_deaths$value)+1)[21:length(ca_deaths$value)],cex=.2,col='red')
 
 
 plot(c(colMeans(fit_yhat$pred_death_total)),type='l',ylim=c(0,max(ca_deaths$value)))
@@ -123,4 +111,7 @@ points(seq(nrow(ca_deaths)+1,nrow(ca_deaths)+28),validation_death$value,col='blu
 
 mean(fit_yhat$sigma_cases)
 mean(fit_yhat$sigma_deaths)
+
+mean(fit_yhat$cfr)
+
 
